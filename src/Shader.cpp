@@ -69,7 +69,7 @@ void Shader::setBool(const std::string& name, const std::vector<bool>& value) co
 		break;
 	}
 	default: {
-		std::cout << "Invalueid Uniform type size, not in range [1,4] for uniform " << name << std::endl;
+		std::cout << "Invalid Uniform type size, not in range [1,4] for uniform " << name << std::endl;
 		break;
 	}
 	}
@@ -96,7 +96,7 @@ void Shader::setInt(const std::string& name, const std::vector<int>& value) cons
 		break;
 	}
 	default: {
-		std::cout << "Invalueid Uniform type size, not in range [1,4] for uniform " << name << std::endl;
+		std::cout << "Invalid Uniform type size, not in range [1,4] for uniform " << name << std::endl;
 		break;
 	}
 	}
@@ -123,7 +123,7 @@ void Shader::setFloat(const std::string& name, const std::vector<float>& value) 
 		break;
 	}
 	default: {
-		std::cout << "Invalueid Uniform type size, not in range [1,4] for uniform " << name << std::endl;
+		std::cout << "Invalid Uniform type size, not in range [1,4] for uniform " << name << std::endl;
 		break;
 	}
 	}
