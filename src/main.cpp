@@ -12,6 +12,7 @@
 #include "vendor/imgui/imgui_impl_glfw.h"
 #include "vendor/imgui/imgui_impl_opengl3.h"
 #include "vendor/stb_image/stb_image.h"
+#include "tests/TestClearColor.h"
 #include "../headers/Shader.h"
 #include "../headers/VertexBuffer.h"
 #include "../headers/IndexBuffer.h"
@@ -130,10 +131,6 @@ int main() {
 	/*Texture texture1("res/textures/container.jpg");
 	Texture texture2("res/textures/awesomeface.png");*/
 	Texture texture3("res/textures/applause-leo.png");
-	// set the texture wrapping parameters
-	//texture2.bind();
-	//GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
-	//GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
 
 	// MATH
 	glm::mat4 model = glm::rotate(glm::mat4(1.0f), glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -156,8 +153,6 @@ int main() {
 	Shader shaderProg1("res/shaders/Basic1.shader");
 
 	shaderProg1.bind();
-	/*shaderProg1.setInt("oTexture1", {0});
-	shaderProg1.setInt("oTexture2", {1});*/
 	shaderProg1.setInt("oTexture3", {2});
 	
 	texture3.bind(2);
@@ -168,6 +163,11 @@ int main() {
 	int frame_num = 0;
 	int x_off = 0;
 	int y_off = 0;
+
+	test::Test* currentTest = nullptr;
+	test::TestMenu* testMenu = new test::TestMenu(currentTest);
+	currentTest = testMenu;
+	testMenu->registerTest<test::TestClearColor>("Clear Color Test1");
 
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -180,26 +180,11 @@ int main() {
 	
 
 	// RENDER LOOP
-	//auto t_start = std::chrono::high_resolution_clock::now();
 	while (!glfwWindowShouldClose(window)) {
 		// INPUT
 		processInput(window);
 
 		// MATH
-		/*auto t_now = std::chrono::high_resolution_clock::now();
-		float time = std::chrono::duration_cast<std::chrono::duration<float>>(t_now - t_start).count();
-		*/
-		
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-
-		// RENDER
-		renderer.clear();
-
-		shaderProg1.bind();
-		shaderProg1.setInt("x_offset", { x_off });
-		shaderProg1.setInt("y_offset", { y_off });
 		frame_num = (frame_num + 1) % 50;
 		if (!frame_num) {
 			x_off = ((x_off + 1) % 5);
@@ -207,6 +192,17 @@ int main() {
 				y_off = ((y_off + 1) % 5);
 			}
 		}
+
+		// RENDER
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		renderer.clear();
+
+		shaderProg1.bind();
+		shaderProg1.setInt("x_offset", { x_off });
+		shaderProg1.setInt("y_offset", { y_off });
+
 		
 		for (unsigned i = 0; i < 10; ++i) {
 			model = glm::translate(glm::mat4(1.f), cubePositions[i] + translational_offset);
@@ -221,7 +217,16 @@ int main() {
 		{
 			static float f = 0.0f;
 
-			ImGui::Begin("Hello, world!");
+			ImGui::Begin("Debug");
+			if (currentTest) {
+				currentTest->onUpdate(0.f);
+				currentTest->onRender();
+				if (currentTest != testMenu && ImGui::Button("<-")) {
+					delete currentTest;
+					currentTest = testMenu;
+				}
+				currentTest->onImGuiRender();
+			}
 			ImGui::SliderFloat3("angular_offsets", &angular_offset.x, 0.0f, 360.0f);
 			ImGui::SliderFloat3("translational_offsets", &translational_offset.x, -1.0f, 1.0f);
 
@@ -236,6 +241,9 @@ int main() {
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+
+	delete currentTest;
+	if (currentTest != testMenu) delete testMenu;
 
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
