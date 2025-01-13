@@ -48,24 +48,24 @@ unsigned int Shader::getID() const
 	return m_ID;
 }
 
-void Shader::setBool(const std::string& name, const std::vector<bool>& value) const {
+void Shader::setBool(const std::string& name, const std::vector<bool>& value) {
 	size_t count = value.size();
 	switch (count)
 	{
 	case 1: {
-		GLCall(glUniform1i(glGetUniformLocation(m_ID, name.c_str()), (int)value[0]));
+		GLCall(glUniform1i(getUniformLoc(name), (int)value[0]));
 		break;
 	}
 	case 2: {
-		GLCall(glUniform2i(glGetUniformLocation(m_ID, name.c_str()), (int)value[0], (int)value[1]));
+		GLCall(glUniform2i(getUniformLoc(name), (int)value[0], (int)value[1]));
 		break;
 	}
 	case 3: {
-		GLCall(glUniform3i(glGetUniformLocation(m_ID, name.c_str()), (int)value[0], (int)value[1], (int)value[2]));
+		GLCall(glUniform3i(getUniformLoc(name), (int)value[0], (int)value[1], (int)value[2]));
 		break;
 	}
 	case 4: {
-		GLCall(glUniform4i(glGetUniformLocation(m_ID, name.c_str()), (int)value[0], (int)value[1], (int)value[2], (int)value[3]));
+		GLCall(glUniform4i(getUniformLoc(name), (int)value[0], (int)value[1], (int)value[2], (int)value[3]));
 		break;
 	}
 	default: {
@@ -75,24 +75,24 @@ void Shader::setBool(const std::string& name, const std::vector<bool>& value) co
 	}
 }
 
-void Shader::setInt(const std::string& name, const std::vector<int>& value) const {
+void Shader::setInt(const std::string& name, const std::vector<int>& value) {
 	size_t count = value.size();
 	switch (count)
 	{
 	case 1: {
-		GLCall(glUniform1i(glGetUniformLocation(m_ID, name.c_str()), value[0]));
+		GLCall(glUniform1i(getUniformLoc(name), value[0]));
 		break;
 	}
 	case 2: {
-		GLCall(glUniform2i(glGetUniformLocation(m_ID, name.c_str()), value[0], value[1]));
+		GLCall(glUniform2i(getUniformLoc(name), value[0], value[1]));
 		break;
 	}
 	case 3: {
-		GLCall(glUniform3i(glGetUniformLocation(m_ID, name.c_str()), value[0], value[1], value[2]));
+		GLCall(glUniform3i(getUniformLoc(name), value[0], value[1], value[2]));
 		break;
 	}
 	case 4: {
-		GLCall(glUniform4i(glGetUniformLocation(m_ID, name.c_str()), value[0], value[1], value[2], value[3]));
+		GLCall(glUniform4i(getUniformLoc(name), value[0], value[1], value[2], value[3]));
 		break;
 	}
 	default: {
@@ -102,24 +102,24 @@ void Shader::setInt(const std::string& name, const std::vector<int>& value) cons
 	}
 }
 
-void Shader::setFloat(const std::string& name, const std::vector<float>& value) const {
+void Shader::setFloat(const std::string& name, const std::vector<float>& value) {
 	size_t count = value.size();
 	switch (count)
 	{
 	case 1: {
-		GLCall(glUniform1f(glGetUniformLocation(m_ID, name.c_str()), value[0]));
+		GLCall(glUniform1f(getUniformLoc(name), value[0]));
 		break;
 	}
 	case 2: {
-		GLCall(glUniform2f(glGetUniformLocation(m_ID, name.c_str()), value[0], value[1]));
+		GLCall(glUniform2f(getUniformLoc(name), value[0], value[1]));
 		break;
 	}
 	case 3: {
-		GLCall(glUniform3f(glGetUniformLocation(m_ID, name.c_str()), value[0], value[1], value[2]));
+		GLCall(glUniform3f(getUniformLoc(name), value[0], value[1], value[2]));
 		break;
 	}
 	case 4: {
-		GLCall(glUniform4f(glGetUniformLocation(m_ID, name.c_str()), value[0], value[1], value[2], value[3]));
+		GLCall(glUniform4f(getUniformLoc(name), value[0], value[1], value[2], value[3]));
 		break;
 	}
 	default: {
@@ -129,38 +129,51 @@ void Shader::setFloat(const std::string& name, const std::vector<float>& value) 
 	}
 }
 
-void Shader::setVec(const std::string& name, const std::vector<float>& value) const {
+void Shader::setVec(const std::string& name, const std::vector<float>& value)
+{
 	Shader::setFloat(name, value);
 }
 
-void Shader::setVec(const std::string& name, const glm::vec2& value) const
+void Shader::setVec(const std::string& name, const glm::vec2& value)
 {
-	GLCall(glUniform2fv(glGetUniformLocation(m_ID, name.c_str()), 1, &value[0]));
+	GLCall(glUniform2fv(getUniformLoc(name), 1, &value[0]));
 }
 
-void Shader::setVec(const std::string& name, const glm::vec3& value) const
+void Shader::setVec(const std::string& name, const glm::vec3& value)
 {
-	GLCall(glUniform3fv(glGetUniformLocation(m_ID, name.c_str()), 1, &value[0]));
+	GLCall(glUniform3fv(getUniformLoc(name), 1, &value[0]));
 }
 
-void Shader::setVec(const std::string& name, const glm::vec4& value) const
+void Shader::setVec(const std::string& name, const glm::vec4& value)
 {
-	GLCall(glUniform4fv(glGetUniformLocation(m_ID, name.c_str()), 1, &value[0]));
+	GLCall(glUniform4fv(getUniformLoc(name), 1, &value[0]));
 }
 
-void Shader::setMat(const std::string& name, const glm::mat2& mat) const
+void Shader::setMat(const std::string& name, const glm::mat2& mat)
 {
-	GLCall(glUniformMatrix2fv(glGetUniformLocation(m_ID, name.c_str()), 1, GL_FALSE, &mat[0][0]));
+	GLCall(glUniformMatrix2fv(getUniformLoc(name), 1, GL_FALSE, &mat[0][0]));
 }
 
-void Shader::setMat(const std::string& name, const glm::mat3& mat) const
+void Shader::setMat(const std::string& name, const glm::mat3& mat)
 {
-	GLCall(glUniformMatrix3fv(glGetUniformLocation(m_ID, name.c_str()), 1, GL_FALSE, &mat[0][0]));
+	GLCall(glUniformMatrix3fv(getUniformLoc(name), 1, GL_FALSE, &mat[0][0]));
 }
 
-void Shader::setMat(const std::string& name, const glm::mat4& mat) const
+void Shader::setMat(const std::string& name, const glm::mat4& mat)
 {
-	GLCall(glUniformMatrix4fv(glGetUniformLocation(m_ID, name.c_str()), 1, GL_FALSE, &mat[0][0]));
+	GLCall(glUniformMatrix4fv(getUniformLoc(name), 1, GL_FALSE, &mat[0][0]));
+}
+
+int Shader::getUniformLoc(const std::string& name) const
+{
+	if (m_UniformLocationCache.count(name)) return m_UniformLocationCache[name];
+
+	GLCall(int location = glGetUniformLocation(m_ID, name.c_str()));
+	if (location == -1) {
+		std::cout << "Warning: Uniform \"" << name << "\" doesn't exist." << std::endl;
+	}
+
+	return m_UniformLocationCache[name] = location;
 }
 
 unsigned int Shader::compileShader(unsigned int shaderType, const char* shaderSource) {
@@ -208,16 +221,4 @@ void Shader::parseSource(const std::string& path, std::string& o_vs, std::string
 	}
 	o_vs = sstream[0].str();
 	o_fs = sstream[1].str();
-}
-
-int Shader::getUniformLocation(const std::string& name)
-{
-	if (m_UniformLocationCache.count(name)) return m_UniformLocationCache[name];
-
-	GLCall(int location = glGetUniformLocation(m_ID, name.c_str()));
-	if (location == -1) {
-		std::cout << "Warning: Uniform " << name << " doesn't exist." << std::endl;
-	}
-
-	return m_UniformLocationCache[name] = location;
 }

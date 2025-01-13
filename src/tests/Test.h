@@ -4,6 +4,8 @@
 #include <string>
 #include <functional>
 
+#include "../../headers/util.h"
+
 namespace test {
 	class Test {
 	public:
@@ -11,7 +13,10 @@ namespace test {
 		virtual ~Test() {}
 
 		virtual void onUpdate(float deltaTime) {}
-		virtual void onRender() {}
+		virtual void onRender() {
+			GLCall(glClearColor(0.f, 0.f, 0.f, 1.f));
+			GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+		}
 		virtual void onImGuiRender() {}
 	};
 
