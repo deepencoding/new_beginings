@@ -7,6 +7,7 @@
 #include <iostream>
 #include <chrono>
 #include <vector>
+#include <algorithm>
 
 #include "vendor/imgui/imgui.h"
 #include "vendor/imgui/imgui_impl_glfw.h"
@@ -21,7 +22,9 @@
 #include "../headers/Renderer.h"
 #include "../headers/Texture.h"
 
-void processInput(GLFWwindow* win);
+void processInput(GLFWwindow* win, test::Test* currentTest);
+
+test::Test* currentTest = nullptr;
 
 int main() {
 	// ================= GLFW and OpenGL INIT ====================
@@ -47,18 +50,16 @@ int main() {
 		return -1;
 	}
 
-	GLCall(glViewport(10, 10, 780, 580));
-	glfwSetFramebufferSizeCallback(window, [](GLFWwindow* win, int width, int height) {
-		GLCall(glViewport(10, 10, width - 20, height - 20));
-		});
+	GLCall(glViewport(0, 0, 800, 600));
+	glfwSetFramebufferSizeCallback(window, [](GLFWwindow* win, int width, int height) { GLCall(glViewport(0, 0, width, height)); });
 	GLCall(glEnable(GL_DEPTH_TEST));
+
 	// ====================================================================
 
 
 	//Renderer renderer;
 
-	test::Test* currentTest = nullptr;
-	test::TestMenu* testMenu = new test::TestMenu(currentTest);
+	test::TestMenu* testMenu = new test::TestMenu(currentTest, window);
 	currentTest = testMenu;
 	testMenu->registerTest<test::TestClearColor>("Clear Color Test1");
 	testMenu->registerTest<test::TestTexture2D>("Texture Test1");
@@ -69,22 +70,28 @@ int main() {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 330 core");
 
+	float deltaTime = 0.f;
+	float lastFrame = 0.f;
+
 	// RENDER LOOP
 	while (!glfwWindowShouldClose(window)) {
 		// INPUT
-		processInput(window);
+		processInput(window, currentTest);
+
 
 		// RENDER
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
-		{
-			static float f = 0.0f;
+		float currentFrame = static_cast<float>(glfwGetTime());
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
 
+		{
 			ImGui::Begin("Debug");
 			if (currentTest) {
-				currentTest->onUpdate(0.f);
+				currentTest->onUpdate(deltaTime);
 				currentTest->onRender();
 				if (currentTest != testMenu && ImGui::Button("<-")) {
 					delete currentTest;
@@ -117,8 +124,57 @@ int main() {
 	return 0;
 }
 
-void processInput(GLFWwindow* win) {
+void processInput(GLFWwindow* win, test::Test* currentTest) {
 	if (glfwGetKey(win, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(win, true);
 	}
+
+	test::TestTexture2D* tex2dptr = dynamic_cast<test::TestTexture2D*>(currentTest);
+	if (tex2dptr) {
+		if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS)
+			tex2dptr->m_Camera->m_camPos += tex2dptr->m_Camera->m_camSpeed * tex2dptr->m_Camera->m_camFront;
+		if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS)
+			tex2dptr->m_Camera->m_camPos -= tex2dptr->m_Camera->m_camSpeed  * tex2dptr->m_Camera->m_camFront;
+		if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS)
+			tex2dptr->m_Camera->m_camPos -= glm::normalize(glm::cross(tex2dptr->m_Camera->m_camFront, tex2dptr->m_Camera->m_camUp)) * tex2dptr->m_Camera->m_camSpeed;
+		if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS)
+			tex2dptr->m_Camera->m_camPos += glm::normalize(glm::cross(tex2dptr->m_Camera->m_camFront, tex2dptr->m_Camera->m_camUp)) * tex2dptr->m_Camera->m_camSpeed;
+	}
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+	test::TestTexture2D* tex2dptr = dynamic_cast<test::TestTexture2D*>(currentTest);
+	if (!tex2dptr) return;
+	tex2dptr->m_Camera->m_fov -= (float)yoffset;
+	tex2dptr->m_Camera->m_fov = std::clamp(tex2dptr->m_Camera->m_fov, 1.f, 90.f);
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+	test::TestTexture2D* tex2dptr = dynamic_cast<test::TestTexture2D*>(currentTest);
+	if (!tex2dptr) return;
+	if (tex2dptr->m_Camera->m_firstMouse) {
+		tex2dptr->m_Camera->m_lastX = (float)xpos;
+		tex2dptr->m_Camera->m_lastY = (float)ypos;
+		tex2dptr->m_Camera->m_firstMouse = false;
+	}
+
+	float xoffset = (float)xpos - tex2dptr->m_Camera->m_lastX;
+	float yoffset = tex2dptr->m_Camera->m_lastY - (float)ypos;
+	tex2dptr->m_Camera->m_lastX = (float)xpos;
+	tex2dptr->m_Camera->m_lastY = (float)ypos;
+
+	const float sensitivity = 0.1f;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	tex2dptr->m_Camera->m_yaw = glm::mod(tex2dptr->m_Camera->m_yaw + xoffset, 360.f);
+	tex2dptr->m_Camera->m_pitch += yoffset;
+
+	tex2dptr->m_Camera->m_pitch = std::clamp(tex2dptr->m_Camera->m_pitch, -89.f, 89.f);
+
+	glm::vec3 direction(0.f);
+	direction.x = cos(glm::radians(tex2dptr->m_Camera->m_yaw)) * cos(glm::radians(tex2dptr->m_Camera->m_pitch));
+	direction.y = sin(glm::radians(tex2dptr->m_Camera->m_pitch));
+	direction.z = sin(glm::radians(tex2dptr->m_Camera->m_yaw)) * cos(glm::radians(tex2dptr->m_Camera->m_pitch));
+	tex2dptr->m_Camera->m_camFront = glm::normalize(direction);
 }

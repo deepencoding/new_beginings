@@ -6,7 +6,7 @@ namespace test {
 	class TestClearColor : public Test {
 	
 	public:
-		TestClearColor();
+		TestClearColor(GLFWwindow* win);
 		~TestClearColor();
 
 		void onUpdate(float deltaTime) override;
@@ -14,6 +14,7 @@ namespace test {
 		void onImGuiRender() override;
 	
 	private:
+		GLFWwindow* m_win;
 		float m_clearColor[4];
 	};
 }

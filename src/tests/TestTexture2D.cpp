@@ -1,14 +1,17 @@
 #include "../../headers/util.h"
+#include <GLFW/glfw3.h>
 #include "../../headers/Renderer.h"
+
 
 #include "../vendor/imgui/imgui.h"
 #include "TestTexture2D.h"
 
 namespace test {
-	TestTexture2D::TestTexture2D()
-		: frame_num(0), x_off(0), y_off(0), m_angularOffset(0.f, 0.f, 0.f), m_translationalOffset(0.f, 0.f, 0.f),
+	TestTexture2D::TestTexture2D(GLFWwindow* win)
+		: m_win(win), frame_num(0), x_off(0), y_off(0),
+		m_angularOffset(0.f, 0.f, 0.f), m_translationalOffset(0.f, 0.f, 0.f),
 		m_view(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f))), 
-		m_proj(glm::perspective(glm::radians(75.0f), 800.f / 600.f, 0.1f, 100.f)),
+		m_proj(glm::perspective(glm::radians(75.f), 800.f / 600.f, 0.1f, 100.f)),
 		m_model(glm::rotate(glm::mat4(1.0f), glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f)))
 
 	{
@@ -78,7 +81,7 @@ namespace test {
 		};
 
 		m_VAO = std::make_unique<VertexArray>();
-		m_VBO = std::make_unique<VertexBuffer>(vertices, 4 * 6 * 7 * sizeof(float));
+		m_VBO = std::make_unique<VertexBuffer>(vertices, static_cast<unsigned int>(1ULL * 4 * 6 * 7 * sizeof(float)));
 
 		VertexBufferLayout vlayout;
 		vlayout.push<float>(3);
@@ -102,6 +105,8 @@ namespace test {
 			glm::vec3(-1.3f,  1.0f, -1.5f ),
 		};
 
+		m_Camera = std::make_unique<Camera>(m_win);
+
 		m_ShaderProg = std::make_unique<Shader>("res/shaders/Basic1.shader");
 		m_ShaderProg->bind();
 		m_ShaderProg->setInt("oTexture3", { 2 });
@@ -111,7 +116,9 @@ namespace test {
 
 	TestTexture2D::~TestTexture2D() {}
 
-	void TestTexture2D::onUpdate(float deltaTime) {}
+	void TestTexture2D::onUpdate(float deltaTime) {
+		m_Camera->m_camSpeed = 2.5f * deltaTime;
+	}
 
 	void TestTexture2D::onRender() {
 		frame_num = (frame_num + 1) % 50;
@@ -122,15 +129,22 @@ namespace test {
 			}
 		}
 
+		const float radius = 10.f;
+		float camX = static_cast<float>(sin(glfwGetTime()) * radius);
+		float camZ = static_cast<float>(cos(glfwGetTime()) * radius);
+
+		m_view = glm::lookAt(m_Camera->m_camPos, m_Camera->m_camPos + m_Camera->m_camFront, m_Camera->m_camUp);
+		m_proj = glm::perspective(glm::radians(m_Camera->m_fov), 800.f / 600.f, 0.1f, 100.f);
+
 		Renderer renderer;
 		renderer.clear();
-		/*GLCall(glClearColor(0.3f, 0.8f, 0.5f, 1.f));
-		GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));*/
 
 		m_Texture->bind(2);
 		m_ShaderProg->bind();
 		m_ShaderProg->setInt("x_offset", { x_off });
 		m_ShaderProg->setInt("y_offset", { y_off });
+		m_ShaderProg->setMat("view", m_view);
+		m_ShaderProg->setMat("proj", m_proj);
 
 		for (unsigned i = 0; i < 10; ++i) {
 			m_model = glm::translate(glm::mat4(1.f), m_cubePositions[i] + m_translationalOffset);
@@ -147,4 +161,6 @@ namespace test {
 		ImGui::SliderFloat3("Angular Offset", &m_angularOffset.x, 0.0f, 360.0f);
 		ImGui::SliderFloat3("Translational Offset", &m_translationalOffset.x, -1.0f, 1.0f);
 	}
-}
+
+
+};

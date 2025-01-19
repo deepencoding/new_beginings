@@ -3,7 +3,7 @@
 #include "TestClearColor.h"
 
 namespace test {
-	TestClearColor::TestClearColor(): m_clearColor { 0.2f, 0.3f, 0.8f, 1.f } {}
+	TestClearColor::TestClearColor(GLFWwindow* win): m_win(win), m_clearColor { 0.2f, 0.3f, 0.8f, 1.f } {}
 	TestClearColor::~TestClearColor() {}
 
 	void TestClearColor::onUpdate(float deltaTime) {}

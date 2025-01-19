@@ -8,6 +8,7 @@
 #include "../../headers/VertexArray.h"
 #include "../../headers/Shader.h"
 #include "../../headers/Texture.h"
+#include "../../headers/Camera.h"
 
 #include "Test.h"
 
@@ -15,13 +16,17 @@ namespace test {
 	class TestTexture2D : public Test {
 	
 	public:
-		TestTexture2D();
+		TestTexture2D(GLFWwindow* win);
 		~TestTexture2D();
 
 		void onUpdate(float deltaTime) override;
 		void onRender() override;
 		void onImGuiRender() override;
+		std::unique_ptr<Camera> m_Camera;
+
 	private:
+		GLFWwindow* m_win;
+		int frame_num, x_off, y_off;
 		std::unique_ptr<VertexArray> m_VAO;
 		std::unique_ptr<VertexBuffer> m_VBO;
 		std::unique_ptr<IndexBuffer> m_EBO;
@@ -30,8 +35,5 @@ namespace test {
 		glm::mat4 m_view, m_proj, m_model;
 		glm::vec3 m_angularOffset, m_translationalOffset;
 		std::vector<glm::vec3> m_cubePositions;
-		int frame_num;
-		int x_off;
-		int y_off;
 	};
 }

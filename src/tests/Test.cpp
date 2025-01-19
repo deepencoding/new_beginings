@@ -4,8 +4,8 @@
 #include "../vendor/imgui/imgui.h"
 
 namespace test {
-	TestMenu::TestMenu(Test*& curTestPointer)
-		: m_currentTest (curTestPointer) 
+	TestMenu::TestMenu(Test*& curTestPointer, GLFWwindow* win)
+		: m_currentTest (curTestPointer), m_win(win)
 	{
 	}
 
