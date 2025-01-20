@@ -7,7 +7,6 @@
 #include <iostream>
 #include <chrono>
 #include <vector>
-#include <algorithm>
 
 #include "vendor/imgui/imgui.h"
 #include "vendor/imgui/imgui_impl_glfw.h"
@@ -145,8 +144,7 @@ void processInput(GLFWwindow* win, test::Test* currentTest) {
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	test::TestTexture2D* tex2dptr = dynamic_cast<test::TestTexture2D*>(currentTest);
 	if (!tex2dptr) return;
-	tex2dptr->m_Camera->m_fov -= (float)yoffset;
-	tex2dptr->m_Camera->m_fov = std::clamp(tex2dptr->m_Camera->m_fov, 1.f, 90.f);
+	tex2dptr->m_Camera->processMouseScroll(static_cast<float>(yoffset));
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
@@ -163,18 +161,5 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	tex2dptr->m_Camera->m_lastX = (float)xpos;
 	tex2dptr->m_Camera->m_lastY = (float)ypos;
 
-	const float sensitivity = 0.1f;
-	xoffset *= sensitivity;
-	yoffset *= sensitivity;
-
-	tex2dptr->m_Camera->m_yaw = glm::mod(tex2dptr->m_Camera->m_yaw + xoffset, 360.f);
-	tex2dptr->m_Camera->m_pitch += yoffset;
-
-	tex2dptr->m_Camera->m_pitch = std::clamp(tex2dptr->m_Camera->m_pitch, -89.f, 89.f);
-
-	glm::vec3 direction(0.f);
-	direction.x = cos(glm::radians(tex2dptr->m_Camera->m_yaw)) * cos(glm::radians(tex2dptr->m_Camera->m_pitch));
-	direction.y = sin(glm::radians(tex2dptr->m_Camera->m_pitch));
-	direction.z = sin(glm::radians(tex2dptr->m_Camera->m_yaw)) * cos(glm::radians(tex2dptr->m_Camera->m_pitch));
-	tex2dptr->m_Camera->m_camFront = glm::normalize(direction);
+	tex2dptr->m_Camera->processMouseMovement(xoffset, yoffset, true);
 }

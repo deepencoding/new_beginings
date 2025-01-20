@@ -6,6 +6,10 @@
 #include "../vendor/imgui/imgui.h"
 #include "TestTexture2D.h"
 
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+
+
 namespace test {
 	TestTexture2D::TestTexture2D(GLFWwindow* win)
 		: m_win(win), frame_num(0), x_off(0), y_off(0),
@@ -105,7 +109,11 @@ namespace test {
 			glm::vec3(-1.3f,  1.0f, -1.5f ),
 		};
 
-		m_Camera = std::make_unique<Camera>(m_win);
+		glfwSetCursorPosCallback(m_win, mouse_callback);
+		glfwSetScrollCallback(m_win, scroll_callback);
+		glfwSetInputMode(m_win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		m_Camera = std::make_unique<Camera>(glm::vec3(0.0f, 0.0f, 3.0f));
+
 
 		m_ShaderProg = std::make_unique<Shader>("res/shaders/Basic1.shader");
 		m_ShaderProg->bind();
@@ -129,12 +137,8 @@ namespace test {
 			}
 		}
 
-		const float radius = 10.f;
-		float camX = static_cast<float>(sin(glfwGetTime()) * radius);
-		float camZ = static_cast<float>(cos(glfwGetTime()) * radius);
-
 		m_view = glm::lookAt(m_Camera->m_camPos, m_Camera->m_camPos + m_Camera->m_camFront, m_Camera->m_camUp);
-		m_proj = glm::perspective(glm::radians(m_Camera->m_fov), 800.f / 600.f, 0.1f, 100.f);
+		m_proj = glm::perspective(glm::radians(m_Camera->m_zoom), 800.f / 600.f, 0.1f, 100.f);
 
 		Renderer renderer;
 		renderer.clear();
