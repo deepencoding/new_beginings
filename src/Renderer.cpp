@@ -2,9 +2,13 @@
 #include "../headers/util.h"
 #include "../headers/Renderer.h"
 
-void Renderer::clear() const
+void Renderer::clear(std::vector<float> cols) const
 {
-	GLCall(glClearColor(0.2f, 0.3f, 0.3f, 1.0f));
+	if (cols.size() != 4) {
+		std::cout << "ERROR::RENDERER::INVALID CLEAR COLOR\n";
+		return;
+	}
+	GLCall(glClearColor(cols[0], cols[1], cols[2], cols[3]));
 	GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 }
 

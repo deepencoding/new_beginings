@@ -22,6 +22,9 @@ namespace test {
 		void onUpdate(float deltaTime) override;
 		void onRender() override;
 		void onImGuiRender() override;
+		void processInput(float deltaTime) override;
+		void onMouse(float xpos, float ypos) override;
+		void onScroll(float yoffset) override;
 		std::unique_ptr<Camera> m_Camera;
 
 	private:

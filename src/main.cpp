@@ -12,8 +12,11 @@
 #include "vendor/imgui/imgui_impl_glfw.h"
 #include "vendor/imgui/imgui_impl_opengl3.h"
 #include "vendor/stb_image/stb_image.h"
+
 #include "tests/TestClearColor.h"
 #include "tests/TestTexture2D.h"
+#include "tests/TestLighting3D.h"
+
 #include "../headers/Shader.h"
 #include "../headers/VertexBuffer.h"
 #include "../headers/IndexBuffer.h"
@@ -21,7 +24,7 @@
 #include "../headers/Renderer.h"
 #include "../headers/Texture.h"
 
-void processInput(GLFWwindow* win, test::Test* currentTest);
+static void processInput(GLFWwindow* win, test::Test* currentTest, float deltaTime);
 
 test::Test* currentTest = nullptr;
 
@@ -53,21 +56,20 @@ int main() {
 	glfwSetFramebufferSizeCallback(window, [](GLFWwindow* win, int width, int height) { GLCall(glViewport(0, 0, width, height)); });
 	GLCall(glEnable(GL_DEPTH_TEST));
 
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	//ImGui::StyleColorsLight();
+	ImGui::StyleColorsDark();
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 330 core");
+
 	// ====================================================================
-
-
-	//Renderer renderer;
 
 	test::TestMenu* testMenu = new test::TestMenu(currentTest, window);
 	currentTest = testMenu;
 	testMenu->registerTest<test::TestClearColor>("Clear Color Test1");
 	testMenu->registerTest<test::TestTexture2D>("Texture Test1");
-
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	ImGui::StyleColorsLight();
-	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init("#version 330 core");
+	testMenu->registerTest<test::TestLighting3D>("Lighting Test1");
 
 	float deltaTime = 0.f;
 	float lastFrame = 0.f;
@@ -75,7 +77,7 @@ int main() {
 	// RENDER LOOP
 	while (!glfwWindowShouldClose(window)) {
 		// INPUT
-		processInput(window, currentTest);
+		processInput(window, currentTest, deltaTime);
 
 
 		// RENDER
@@ -123,43 +125,18 @@ int main() {
 	return 0;
 }
 
-void processInput(GLFWwindow* win, test::Test* currentTest) {
+static void processInput(GLFWwindow* win, test::Test* currentTest, float deltaTime) {
 	if (glfwGetKey(win, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(win, true);
 	}
 
-	test::TestTexture2D* tex2dptr = dynamic_cast<test::TestTexture2D*>(currentTest);
-	if (tex2dptr) {
-		if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS)
-			tex2dptr->m_Camera->m_camPos += tex2dptr->m_Camera->m_camSpeed * tex2dptr->m_Camera->m_camFront;
-		if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS)
-			tex2dptr->m_Camera->m_camPos -= tex2dptr->m_Camera->m_camSpeed  * tex2dptr->m_Camera->m_camFront;
-		if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS)
-			tex2dptr->m_Camera->m_camPos -= glm::normalize(glm::cross(tex2dptr->m_Camera->m_camFront, tex2dptr->m_Camera->m_camUp)) * tex2dptr->m_Camera->m_camSpeed;
-		if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS)
-			tex2dptr->m_Camera->m_camPos += glm::normalize(glm::cross(tex2dptr->m_Camera->m_camFront, tex2dptr->m_Camera->m_camUp)) * tex2dptr->m_Camera->m_camSpeed;
-	}
+	if (currentTest) currentTest->processInput(deltaTime);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-	test::TestTexture2D* tex2dptr = dynamic_cast<test::TestTexture2D*>(currentTest);
-	if (!tex2dptr) return;
-	tex2dptr->m_Camera->processMouseScroll(static_cast<float>(yoffset));
+	if (currentTest) currentTest->onScroll(static_cast<float>(yoffset));
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
-	test::TestTexture2D* tex2dptr = dynamic_cast<test::TestTexture2D*>(currentTest);
-	if (!tex2dptr) return;
-	if (tex2dptr->m_Camera->m_firstMouse) {
-		tex2dptr->m_Camera->m_lastX = (float)xpos;
-		tex2dptr->m_Camera->m_lastY = (float)ypos;
-		tex2dptr->m_Camera->m_firstMouse = false;
-	}
-
-	float xoffset = (float)xpos - tex2dptr->m_Camera->m_lastX;
-	float yoffset = tex2dptr->m_Camera->m_lastY - (float)ypos;
-	tex2dptr->m_Camera->m_lastX = (float)xpos;
-	tex2dptr->m_Camera->m_lastY = (float)ypos;
-
-	tex2dptr->m_Camera->processMouseMovement(xoffset, yoffset, true);
+	if (currentTest) currentTest->onMouse(static_cast<float>(xpos), static_cast<float>(ypos));
 }

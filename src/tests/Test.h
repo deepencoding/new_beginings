@@ -19,6 +19,9 @@ namespace test {
 			GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 		}
 		virtual void onImGuiRender() {}
+		virtual void processInput(float deltaTime) {}
+		virtual void onMouse(float xpos, float ypos) {}
+		virtual void onScroll(float yoffset) {}
 	};
 
 	class TestMenu : public Test {
@@ -28,15 +31,20 @@ namespace test {
 		void onImGuiRender() override;
 		
 		template<typename T>
-		void registerTest(const std::string& name) {
+		void registerTest(const std::string& name)
+		{
 			std::cout << "Registering test: " << name << std::endl;
 
 			m_tests.push_back(std::make_pair(name, [&]() { return new T(this->m_win); }));
 		}
+		void processInput(float deltaTime) override {}
+		void onMouse(float xpos, float ypos) override {}
+		void onScroll(float yoffset) override {}
 
 	private:
 		Test*& m_currentTest;
 		GLFWwindow* m_win;
 		std::vector<std::pair<std::string, std::function<Test* ()>>> m_tests;
 	};
+	
 }

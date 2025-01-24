@@ -125,7 +125,7 @@ namespace test {
 	TestTexture2D::~TestTexture2D() {}
 
 	void TestTexture2D::onUpdate(float deltaTime) {
-		m_Camera->m_camSpeed = 2.5f * deltaTime;
+		//m_Camera->m_camSpeed = 2.5f * deltaTime;
 	}
 
 	void TestTexture2D::onRender() {
@@ -166,5 +166,37 @@ namespace test {
 		ImGui::SliderFloat3("Translational Offset", &m_translationalOffset.x, -1.0f, 1.0f);
 	}
 
+	void TestTexture2D::processInput(float deltaTime)
+	{
+		if (glfwGetKey(m_win, GLFW_KEY_W) == GLFW_PRESS)
+			m_Camera->processKeyboard(DIRECTION::FORWARD, deltaTime);
+		if (glfwGetKey(m_win, GLFW_KEY_S) == GLFW_PRESS)
+			m_Camera->processKeyboard(DIRECTION::BACKWARD, deltaTime);
+		if (glfwGetKey(m_win, GLFW_KEY_A) == GLFW_PRESS)
+			m_Camera->processKeyboard(DIRECTION::LEFT, deltaTime);
+		if (glfwGetKey(m_win, GLFW_KEY_D) == GLFW_PRESS)
+			m_Camera->processKeyboard(DIRECTION::RIGHT, deltaTime);
+	}
+
+	void TestTexture2D::onMouse(float xpos, float ypos)
+	{
+		if (m_Camera->m_firstMouse) {
+			m_Camera->m_lastX = (float)xpos;
+			m_Camera->m_lastY = (float)ypos;
+			m_Camera->m_firstMouse = false;
+		}
+
+		float xoffset = (float)xpos - m_Camera->m_lastX;
+		float yoffset = m_Camera->m_lastY - (float)ypos;
+		m_Camera->m_lastX = (float)xpos;
+		m_Camera->m_lastY = (float)ypos;
+
+		m_Camera->processMouseMovement(xoffset, yoffset, true);
+	}
+
+	void TestTexture2D::onScroll(float yoffset)
+	{
+		m_Camera->processMouseScroll(yoffset);
+	}
 
 };
